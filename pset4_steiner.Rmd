@@ -19,16 +19,18 @@ both FWER and FDR.
 
 ```{r setup, include = FALSE}
 # load packages
+library("pdftools")
+library("stringr")
 library("tidyverse")
 library("magrittr")
 library("knitr")
 library("kableExtra")
-library("tabulapdf")
+
 # library("fixest")
 # library("broom")
 # library("did")
 # library("plm")
-# library("stringr")
+#
 # library("stargazer")
 # library("ivreg")
 
@@ -42,10 +44,68 @@ knitr::opts_chunk$set(echo = FALSE)
 1\. Extract data from Tables 1 through 4 of the article, constructing a
 dataset or dataframe that can be analyzed with a statistical package.
 
+```{r scrape tables}
+# instructions source https://crimebythenumbers.com/scrape-table.html
+
+# load pdf as text
+lopdf_text <- pdf_text("lopez_osorio_etal_2017.pdf") 
+
+# separate and create table 1
+table1 <- lopdf_text[[5]] %>% 
+  strsplit(., "\n") %>% 
+  .[[1]] %>% 
+  trimws()
+head(table1, 15)
+```
+
+
+
+
+
+
+
+```{r extract data}
+# install java
+# https://www.java.com/en/download/
+# install "rJava" package
+
+
+```
+
+
+
 ```{r extract data tables}
-# used the following sources to determine methhod for extraction
-# suggesting tabulapdf: https://www.r-bloggers.com/2024/04/tabulapdf-extract-tables-from-pdf-documents/
+# download java
+
+# download tabula-java
+# https://github.com/tabulapdf/tabula-java/blob/master/README.md
+# install "rJava" package
+# install "tabulapdf" package (https://cran.r-project.org/web/packages/tabulapdf/readme/README.html)
+# use install.packages("tabulapdf", repos = c("https://ropensci.r-universe.dev", "https://cloud.r-project.org"))
+# now you can load library
+library("tabulapdf")
+
+# # establish pdf path
+# studypdf <- "~/Documents/r_coding_eds/ppha_program_eval/pset4/lopez_osorio_etal_2017.pdf"
 # 
+# table1 <- extract_tables(studypdf, pages = 5)
+
+f <- system.file("examples", "data.pdf", package = "tabulapdf")
+out <- extract_tables(f)
+out[[1]]
+
+
+
+
+
+
+# used the following sources to determine method for extraction
+# suggesting tabulapdf: https://www.r-bloggers.com/2024/04/tabulapdf-extract-tables-from-pdf-documents/
+# instructions for downloading tabula, requires java download
+# https://tabula.technology/
+
+
+
 
 
 
