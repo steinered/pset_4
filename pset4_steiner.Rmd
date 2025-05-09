@@ -19,13 +19,13 @@ both FWER and FDR.
 
 ```{r setup, include = FALSE}
 # load packages
-library("pdftools")
-library("stringr")
+
 library("tidyverse")
 library("magrittr")
 library("knitr")
 library("kableExtra")
-
+library("pdftools")
+library("stringr")
 # library("fixest")
 # library("broom")
 # library("did")
@@ -44,72 +44,205 @@ knitr::opts_chunk$set(echo = FALSE)
 1\. Extract data from Tables 1 through 4 of the article, constructing a
 dataset or dataframe that can be analyzed with a statistical package.
 
-```{r scrape tables}
-# instructions source https://crimebythenumbers.com/scrape-table.html
-
-# load pdf as text
-lopdf_text <- pdf_text("lopez_osorio_etal_2017.pdf") 
-
-# separate and create table 1
-table1 <- lopdf_text[[5]] %>% 
-  strsplit(., "\n") %>% 
-  .[[1]] %>% 
-  trimws()
-head(table1, 15)
-```
-
-
-
-
-
-
-
 ```{r extract data}
-# install java
-# https://www.java.com/en/download/
-# install "rJava" package
+# in another life, i do this by coding
+# but today, i use tabula
+```
 
+```{r create table 1}
+# instructions source: https://crimebythenumbers.com/scrape-table.html
+
+# make pdf text file
+pdf_text <- pdf_text(
+  # file path
+  "lopez_osorio_etal_2017.pdf")
+
+# extract table 1 on page 5
+lotable1 <- pdf_text[[5]] %>% 
+  # split table on line breaks
+  str_split(., "\n", simplify = TRUE) %>% 
+  trimws()
+
+# clean up table
+lotable1 <- 
+  # select only rows with data
+  lotable1[11:49] %>% 
+  # and remove rows of over-wrapped indicator text, to be added manually later
+  # ie only keep rows with numeric results
+  keep( ~ str_detect(.x, "\\.\\d+")) %>% 
+  # create columns
+  str_split_fixed(., " {2,}", 7) %>% 
+  # convert to data frame
+  data.frame(.)
+
+# add column names for easy reading
+
+names(lotable1) <- c("Indicators",
+                       "RR",
+                       "X^2",
+                       "Present",
+                       "Absent",
+                       "N/S",
+                       "PerValid")
+
+# separate RR coefficient from 95% CI
+lotable1 %<>%
+  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+         RR = str_extract(RR, "^[0-9.]+"))
+  
+# reorder so CI next to RR
+lotable1 <-
+  lotable1[, c("Indicators",
+                 "RR",
+                 "CI",
+                 "X^2",
+                 "Present",
+                 "Absent",
+                 "N/S",
+                 "PerValid")]
 
 ```
 
+```{r creating tables 2-4}
+# extract table 2 on page 6
+lotable2 <- pdf_text[[6]] %>% 
+  # split table on line breaks
+  str_split(., "\n", simplify = TRUE) %>% 
+  trimws()
 
+# clean up table
+lotable2 <- 
+  # select only rows with data
+  lotable2[12:51] %>% 
+  # and remove rows of over-wrapped indicator text, to be added manually later
+  keep( ~ str_detect(.x, "\\.\\d+")) %>% 
+  # create columns
+  str_split_fixed(., " {2,}", 7) %>% 
+  # convert to data frame
+  data.frame(.)
 
-```{r extract data tables}
-# download java
+# add column names for easy reading
 
-# download tabula-java
-# https://github.com/tabulapdf/tabula-java/blob/master/README.md
-# install "rJava" package
-# install "tabulapdf" package (https://cran.r-project.org/web/packages/tabulapdf/readme/README.html)
-# use install.packages("tabulapdf", repos = c("https://ropensci.r-universe.dev", "https://cloud.r-project.org"))
-# now you can load library
-library("tabulapdf")
+names(lotable2) <- c("Indicators",
+                       "RR",
+                       "X^2",
+                       "Present",
+                       "Absent",
+                       "N/S",
+                       "PerValid")
 
-# # establish pdf path
-# studypdf <- "~/Documents/r_coding_eds/ppha_program_eval/pset4/lopez_osorio_etal_2017.pdf"
-# 
-# table1 <- extract_tables(studypdf, pages = 5)
+# separate RR coefficient from 95% CI
+lotable2 %<>%
+  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+         RR = str_extract(RR, "^[0-9.]+"))
+  
+# reorder so CI next to RR
+lotable2 <-
+  lotable2[, c("Indicators",
+                 "RR",
+                 "CI",
+                 "X^2",
+                 "Present",
+                 "Absent",
+                 "N/S",
+                 "PerValid")]
 
-f <- system.file("examples", "data.pdf", package = "tabulapdf")
-out <- extract_tables(f)
-out[[1]]
+# repeat for table 3
+# extract table 3 on page 7
+lotable3 <- pdf_text[[7]] %>% 
+  # split table on line breaks
+  str_split(., "\n", simplify = TRUE) %>% 
+  trimws()
 
+# clean up table
+lotable3 <- 
+  # select only rows with data
+  lotable3[11:41] %>% 
+  # and remove rows of over-wrapped indicator text, to be added manually later
+  keep( ~ str_detect(.x, "\\.\\d+")) %>% 
+  # create columns
+  str_split_fixed(., " {2,}", 7) %>% 
+  # convert to data frame
+  data.frame(.)
 
+# add column names for easy reading
 
+names(lotable3) <- c("Indicators",
+                       "RR",
+                       "X^2",
+                       "Present",
+                       "Absent",
+                       "N/S",
+                       "PerValid")
 
+# separate RR coefficient from 95% CI
+lotable3 %<>%
+  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+         RR = str_extract(RR, "^[0-9.]+"))
+  
+# reorder so CI next to RR
+lotable3 <-
+  lotable3[, c("Indicators",
+                 "RR",
+                 "CI",
+                 "X^2",
+                 "Present",
+                 "Absent",
+                 "N/S",
+                 "PerValid")]
 
+# repeat for table 4
+# extract table 4 on page 8
+lotable4 <- pdf_text[[8]] %>% 
+  # split table on line breaks
+  str_split(., "\n", simplify = TRUE) %>% 
+  trimws()
 
-# used the following sources to determine method for extraction
-# suggesting tabulapdf: https://www.r-bloggers.com/2024/04/tabulapdf-extract-tables-from-pdf-documents/
-# instructions for downloading tabula, requires java download
-# https://tabula.technology/
+# clean up table
+lotable4 <- 
+  # select only rows with data
+  lotable4[11:36] %>% 
+  # and remove rows of over-wrapped indicator text, to be added manually later
+  # ie only keep rows with numeric results
+  keep( ~ str_detect(.x, "\\.\\d+")) %>% 
+  # create columns
+  str_split_fixed(., " {2,}", 7) %>% 
+  # convert to data frame
+  data.frame(.)
 
+# add column names for easy reading
 
+names(lotable4) <- c("Indicators",
+                       "RR",
+                       "X^2",
+                       "Present",
+                       "Absent",
+                       "N/S",
+                       "PerValid")
 
-
-
-
+# separate RR coefficient from 95% CI
+lotable4 %<>%
+  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+         RR = str_extract(RR, "^[0-9.]+"))
+  
+# reorder so CI next to RR
+lotable4 <-
+  lotable4[, c("Indicators",
+                 "RR",
+                 "CI",
+                 "X^2",
+                 "Present",
+                 "Absent",
+                 "N/S",
+                 "PerValid")]
 ```
+
+```{r show tables}
+lotable1 %>% 
+  kable() %>% 
+  kable_styling()
+```
+
 
 
 2\. The authors use chi-square statistics to test for association
