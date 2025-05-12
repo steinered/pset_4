@@ -386,6 +386,22 @@ lotable5 <-
 # use rbind
 df <- rbind(lotable1, lotable2, lotable3, lotable4, lotable5)
 
+# tk if time later, pipe this
+
+# convert number columns to numeric type
+df$ChiSq <- as.numeric(df$ChiSq)
+
+df$RR <- as.numeric(df$RR) 
+
+df$Present <- as.numeric(gsub(",", "", df$Present))
+
+df$Absent <- as.numeric(gsub(",", "", df$Absent)) 
+
+df$`N/S` <- as.numeric(gsub(",", "", df$'N/S'))
+
+df$PerValid <- as.numeric(df$PerValid)
+
+
 df %>% 
   # mutate(OriginTable = 
   #   case_when(
@@ -466,11 +482,11 @@ The corresponding critical Chi-S value for p \< 0.05 is thus 3.841.
 than 3.841.
 
 If we look at all indicators, including sub-indicators (those without an
-"I-" preceding their name), there are 29 significant predictors across
-tables 1-5; 16 of these indicators are from one of the first 4 tables.
+"I-" preceding their name), there are 50 significant predictors across
+tables 1-5; 32 of these indicators are from one of the first 4 tables.
 
 If we limit our investigation to only major indicators (those with "I-"
-preceding their name), there are 22 significant predictors; 10 of these
+preceding their name), there are 38 significant predictors; 21 of these
 significant predictors are from tables 1-4.
 
 ```{r}
@@ -485,15 +501,32 @@ predictors are basically all noise, or does the histogram suggest there
 is some predictive signal among them?*
 
 ```{r 3 obtain p values}
-df %>% 
-  mutate(pval =
-           )
+df %<>% 
+  # add column of pvalues
+  mutate(pval = 
+           # rounding because these numbers are long
+           round(
+             # using pchisq (https://www.r-bloggers.com/2022/05/calculate-the-p-value-from-chi-square-statistic-in-r/)
+             pchisq(ChiSq, 
+                    # 1 degree of freedom
+                    1, 
+                    # gives upper-tail probability
+                    lower.tail = FALSE), 6)) 
+
+ggplot(df, aes(x = pval)) +
+  geom_histogram(binwidth = 0.01, color = "black", fill = "white")
+
 ```
 
 4\. Construct Bonferroni p-values. Controlling the FWER at 5 percent,
 which predictors are significant? Which predictors lose their
 significance when you account for multiple testing using the Bonferroni
 correction?
+
+```{r 4}
+
+```
+
 
 5\. Now test for significance using the Benjamini-Hochberg approach,
 controlling the FDR at 5 percent. Produce a useful visualization that
