@@ -41,8 +41,8 @@ options(scipen=999)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-1\. Extract data from Tables 1 through 4 of the article, constructing a
-dataset or dataframe that can be analyzed with a statistical package.
+*1. Extract data from Tables 1 through 4 of the article, constructing a
+dataset or dataframe that can be analyzed with a statistical package.*
 
 (Per Ed Discussion Board, extracting data from Tables 1 through 5).
 
@@ -75,7 +75,7 @@ lotable1 <- lotable1[grep("I-1. P", lotable1):
 # add column names for easy reading/editing
 names(lotable1) <- c("Indicators",
                        "RR",
-                       "X^2",
+                       "ChiSq",
                        "Present",
                        "Absent",
                        "N/S",
@@ -83,7 +83,7 @@ names(lotable1) <- c("Indicators",
 
 # separate RR coefficient from 95% CI for easier manipulation
 lotable1 %<>%
-  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+  mutate(CI = str_extract(RR, "\\[[0-9.]+-[0-9.]+\\]\\*{0,3}"),
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 1,
@@ -110,7 +110,7 @@ lotable1 <-
   lotable1[, c("Indicators",
                  "RR",
                  "CI",
-                 "X^2",
+                 "ChiSq",
                  "Present",
                  "Absent",
                  "N/S",
@@ -141,7 +141,7 @@ lotable2 <- lotable2[grep("I-11. T", lotable2):
 
 names(lotable2) <- c("Indicators",
                        "RR",
-                       "X^2",
+                       "ChiSq",
                        "Present",
                        "Absent",
                        "N/S",
@@ -149,7 +149,7 @@ names(lotable2) <- c("Indicators",
 
 # separate RR coefficient from 95% CI
 lotable2 %<>%
-  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+  mutate(CI = str_extract(RR, "\\[[0-9.]+-[0-9.]+\\]\\*{0,3}"),
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 2,
@@ -169,8 +169,8 @@ the last 6 months.",
            grepl("I-20.", Indicators) ~ "I-20. Presence of past breakings of sentence conditions",
            grepl("I-21.", Indicators) ~ "I-21. Presence of physical/sexual aggression records",
            grepl("I-22.", Indicators) ~ "I-22. Presence of gender violence records against other partners",
-grepl("I-23.", Indicators) ~ "I-21. Presence of mental/psychiatric disorder",
-grepl("I-25.", Indicators) ~ "I-21. Presence of any type of addiction or substance abuse (alcohol and drugs)",
+grepl("I-23.", Indicators) ~ "I-23. Presence of mental/psychiatric disorder",
+grepl("I-25.", Indicators) ~ "I-25. Presence of any type of addiction or substance abuse (alcohol and drugs)",
 grepl("I-26.", Indicators) ~ "I-26. Presence of a gender or domestic violence history within their family",
         .default = as.character(Indicators) )
 )
@@ -180,7 +180,7 @@ lotable2 <-
   lotable2[, c("Indicators",
                  "RR",
                  "CI",
-                 "X^2",
+                 "ChiSq",
                  "Present",
                  "Absent",
                  "N/S",
@@ -210,7 +210,7 @@ lotable3 <- lotable3[grep("I-27. P", lotable3):
 
 names(lotable3) <- c("Indicators",
                        "RR",
-                       "X^2",
+                       "ChiSq",
                        "Present",
                        "Absent",
                        "N/S",
@@ -218,7 +218,7 @@ names(lotable3) <- c("Indicators",
 
 # separate RR coefficient from 95% CI
 lotable3 %<>%
-  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+  mutate(CI = str_extract(RR, "\\[[0-9.]+-[0-9.]+\\]\\*{0,3}"),
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 3,
@@ -243,7 +243,7 @@ lotable3 <-
   lotable3[, c("Indicators",
                  "RR",
                  "CI",
-                 "X^2",
+                 "ChiSq",
                  "Present",
                  "Absent",
                  "N/S",
@@ -273,7 +273,7 @@ lotable4 <- lotable4[grep("I-38", lotable4):
 
 names(lotable4) <- c("Indicators",
                        "RR",
-                       "X^2",
+                       "ChiSq",
                        "Present",
                        "Absent",
                        "N/S",
@@ -281,7 +281,7 @@ names(lotable4) <- c("Indicators",
 
 # separate RR coefficient from 95% CI
 lotable4 %<>%
-  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+  mutate(CI = str_extract(RR, "\\[[0-9.]+-[0-9.]+\\]\\*{0,3}"),
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 4, 
@@ -302,7 +302,7 @@ lotable4 <-
   lotable4[, c("Indicators",
                  "RR",
                  "CI",
-                 "X^2",
+                 "ChiSq",
                  "Present",
                  "Absent",
                  "N/S",
@@ -332,7 +332,7 @@ lotable5 <- lotable5[grep("I-1. The", lotable5):
 
 names(lotable5) <- c("Indicators",
                        "RR",
-                       "X^2",
+                       "ChiSq",
                        "Present",
                        "Absent",
                        "N/S",
@@ -340,7 +340,7 @@ names(lotable5) <- c("Indicators",
 
 # separate RR coefficient from 95% CI
 lotable5 %<>%
-  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+  mutate(CI = str_extract(RR, "\\[[0-9.]+-[0-9.]+\\]\\*{0,3}"),
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 5, 
@@ -365,7 +365,7 @@ lotable5 %<>%
            grepl("I-19.", Indicators) ~ "I-19. The aggressor has a stable economic and labor situation",
            grepl("I-20", Indicators) ~ "I-20. The aggressor has favorable family and social support",
            grepl("I-21.", Indicators) ~ "I-21. Presence of a conflict about their responsibilities in the children’s care",
-           grepl("I-22.", Indicators) ~ "The victim feels that the risk level is nonexistent",
+           grepl("I-22.", Indicators) ~ "I-22. The victim feels that the risk level is nonexistent",
         .default = as.character(Indicators) )
 )
   
@@ -374,7 +374,7 @@ lotable5 <-
   lotable5[, c("Indicators",
                  "RR",
                  "CI",
-                 "X^2",
+                 "ChiSq",
                  "Present",
                  "Absent",
                  "N/S",
@@ -382,29 +382,113 @@ lotable5 <-
                "OriginTable")]
 ```
 
+```{r merge tables 1-5}
+# use rbind
+df <- rbind(lotable1, lotable2, lotable3, lotable4, lotable5)
+
+df %>% 
+  # mutate(OriginTable = 
+  #   case_when(
+  #     OriginTable == 1 ~ "1. Reported episode indicators associated with recidivism after 6 months included in the VPR-2015 form.",
+  #     OriginTable == 2 ~ "2. Indicators related to the aggressor associated with recidivism after 6 months included in the VPR-2015 form.",
+  #     OriginTable == 3 ~ "3. Indicators of victim vulnerability associated with recidivism after 6 months included in the de VPR-2015 form.",
+  #     OriginTable == 4 ~ "4. Indicators of aggravating circumstances associated with recidivism after 6 months included in the VPR-2015 form.",
+  #     OriginTable == 5 ~ "5. Indicators associated with recidivism cases included in the VPER-2015 form."
+  #   )
+  # ) %>% 
+  select(-OriginTable) %>% 
+  kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "Present", "Absent", "N/S", "Percent Valid"), caption = "VPR and VPER 2015 form coefficients") %>% 
+  kable_paper("striped", full_width = F) %>% 
+  pack_rows("Table 1. Reported episode indicators associated with recidivism after 6 months included in the VPR-2015 form.", 1, 24) %>% 
+  pack_rows("2. Indicators related to the aggressor associated with recidivism after 6 months included in the VPR-2015 form.", 25, 47) %>% 
+  pack_rows("3. Indicators of victim vulnerability associated with recidivism after 6 months included in the de VPR-2015 form.", 48, 58) %>% 
+  pack_rows("4. Indicators of aggravating circumstances associated with recidivism after 6 months included in the VPR-2015 form.", 59, 64) %>% 
+  pack_rows("5. Indicators associated with recidivism cases included in the VPER-2015 form.", 65, 88) %>% 
+  footnote(
+    general = "** p<0.01,
+    *** p <0.001,
+    IC of ChiSq is 95%,
+    The N/S Cateogry (missing data) groups the cases where this option was marked and the lost cases together."
+  )
 
 
 
 
-
-
-
-```{r show tables}
-# lotable1 %>% 
-#   kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "X^2", "Present", "Absent", "N/S", "Percent Valid"), caption = "Reported episode indicators associated with recidivism after 6 months included in the VPR-2015 form") %>% 
-#   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-2\. The authors use chi-square statistics to test for association
+*2. The authors use chi-square statistics to test for association
 between their candidate predictors and DV recidivism. On the basis of
 the authors’ analysis, how many significant predictors are there at the
-5 percent level?
+5 percent level?*
 
-3\. Obtain p-values associated with the chi-square statistics and plot
+```{r q2, include = FALSE}
+# for chi square, critical value of p < 0.05 is 3.841
+
+# find number of indicators with critical value > 3.841
+# for all indicators
+df %>% 
+  filter(ChiSq > 3.841) %>% 
+  nrow()
+
+# results = 29
+
+# for all indicators tables 1-4
+df %>% 
+  filter(!(OriginTable == 5)) %>% 
+  filter(ChiSq > 3.841) %>% 
+  nrow()
+
+# results = 16
+
+# for major indicators only
+df %>% 
+  # only indicators with "I" in indicators name
+  filter(grepl("I-", Indicators)) %>% 
+  filter(ChiSq > 3.841) %>% 
+  nrow()
+
+# results = 22
+
+# for major indicators only
+df %>% 
+  filter(!(OriginTable == 5)) %>%
+  # only indicators with "I" in indicators name
+  filter(grepl("I-", Indicators)) %>% 
+  filter(ChiSq > 3.841) %>% 
+  nrow()
+
+# results = 10
+```
+
+For a 2x2 table (Chi-Squared test), there is only 1 degree of freedom.
+The corresponding critical Chi-S value for p \< 0.05 is thus 3.841.
+"Significant predictors" are thus those with Chi-Squared results greater
+than 3.841.
+
+If we look at all indicators, including sub-indicators (those without an
+"I-" preceding their name), there are 29 significant predictors across
+tables 1-5; 16 of these indicators are from one of the first 4 tables.
+
+If we limit our investigation to only major indicators (those with "I-"
+preceding their name), there are 22 significant predictors; 10 of these
+significant predictors are from tables 1-4.
+
+```{r}
+# TK
+# If there is time, make a data table where all of these indicators are highlighted
+```
+
+*3. Obtain p-values associated with the chi-square statistics and plot
 their distribution. Under the null hypothesis, one can show that
 p-values are uniformly distributed. Given that, would you say the
 predictors are basically all noise, or does the histogram suggest there
-is some predictive signal among them?
+is some predictive signal among them?*
+
+```{r 3 obtain p values}
+df %>% 
+  mutate(pval =
+           )
+```
 
 4\. Construct Bonferroni p-values. Controlling the FWER at 5 percent,
 which predictors are significant? Which predictors lose their
