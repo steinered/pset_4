@@ -119,7 +119,7 @@ lotable1 <-
 
 ```
 
-```{r creating tables 2-4}
+```{r creating table 2}
 # extract table 2 on page 6
 lotable2 <- pdf_text[[6]] %>% 
   # split table on line breaks
@@ -188,24 +188,18 @@ lotable2 <-
                "OriginTable")]
 ```
 
-```{r}
-
-```
-
-
-
-# repeat for table 3
+```{r creating table 3}
 # extract table 3 on page 7
 lotable3 <- pdf_text[[7]] %>% 
   # split table on line breaks
   str_split(., "\n", simplify = TRUE) %>% 
   trimws()
 
-# clean up table
-lotable3 <- 
-  # select only rows with data
-  lotable3[11:41] %>% 
-  # and remove rows of over-wrapped indicator text, to be added manually later
+# isolate rows with relevant data
+lotable3 <- lotable3[grep("I-27. P", lotable3):
+                       grep("care", lotable3)] %>% 
+  # remove rows of over-wrapped indicator text, to be added manually later
+  # ie only keep rows with numeric results, as indicated by a decimal and number
   keep( ~ str_detect(.x, "\\.\\d+")) %>% 
   # create columns
   str_split_fixed(., " {2,}", 7) %>% 
@@ -225,7 +219,24 @@ names(lotable3) <- c("Indicators",
 # separate RR coefficient from 95% CI
 lotable3 %<>%
   mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
-         RR = str_extract(RR, "^[0-9.]+"))
+         RR = str_extract(RR, "^[0-9.]+"),
+         # and add column identifying origin table
+         OriginTable = 3,
+         # fix indicator names for readibility
+         # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
+         Indicators = case_when(
+           grepl("I-27.", Indicators) ~ "I-27. Presence of any type of disability",
+           grepl("I-28.", Indicators) ~ "I-28. Victim is in gestation period",
+           grepl("I-29.", Indicators) ~ "I-29. Victim suffers from a serious illness",
+           grepl("I-31.", Indicators) ~ "I-31. Victim has no social/family support",
+           grepl("I-32.", Indicators) ~ "I-32. Victim has a mental/psychiatric disorder",
+           grepl("I-33.", Indicators) ~ "I-33. Victim has suicidal ideas/attempts",
+           grepl("I-34.", Indicators) ~ "I-34. Victim has any kind of addiction or engages in substance abuse (alcohol and drugs)",
+           grepl("I-35.", Indicators) ~ "I-35. There is a history of gender or domestic violence within their family",
+           grepl("I-36.", Indicators) ~ "I-36. Victim is economically dependent on the aggressor",
+           grepl("I-37.", Indicators) ~ "I-37. Victim has minors or family members under their care",
+        .default = as.character(Indicators) )
+)
   
 # reorder so CI next to RR
 lotable3 <-
@@ -236,21 +247,22 @@ lotable3 <-
                  "Present",
                  "Absent",
                  "N/S",
-                 "PerValid")]
+                 "PerValid",
+               "OriginTable")]
+```
 
-# repeat for table 4
+```{r creating table 4}
 # extract table 4 on page 8
 lotable4 <- pdf_text[[8]] %>% 
   # split table on line breaks
   str_split(., "\n", simplify = TRUE) %>% 
   trimws()
 
-# clean up table
-lotable4 <- 
-  # select only rows with data
-  lotable4[11:36] %>% 
-  # and remove rows of over-wrapped indicator text, to be added manually later
-  # ie only keep rows with numeric results
+# isolate rows with relevant data
+lotable4 <- lotable4[grep("I-38", lotable4):
+                       grep("or even of killing them", lotable4)] %>% 
+  # remove rows of over-wrapped indicator text, to be added manually later
+  # ie only keep rows with numeric results, as indicated by a decimal and number
   keep( ~ str_detect(.x, "\\.\\d+")) %>% 
   # create columns
   str_split_fixed(., " {2,}", 7) %>% 
@@ -270,7 +282,20 @@ names(lotable4) <- c("Indicators",
 # separate RR coefficient from 95% CI
 lotable4 %<>%
   mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
-         RR = str_extract(RR, "^[0-9.]+"))
+         RR = str_extract(RR, "^[0-9.]+"),
+         # and add column identifying origin table
+         OriginTable = 4, 
+         # fix indicator names for readibility
+         # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
+         Indicators = case_when(
+           grepl("I-38.", Indicators) ~ "I-38. The victim has withdrawn complaints in the past",
+           grepl("I-39.", Indicators) ~ "I-39. The victim has suffered gender violence by the hands of other aggressors in the past",
+           grepl("I-40.", Indicators) ~ "I-40. The victim has expressed their desire to end the relationship to the aggressor at least 6 months ago",
+           grepl("I-41.", Indicators) ~ "I-41. There have been reports of mutual violence",
+           grepl("I-42.", Indicators) ~ "I-42. The victim fears for the physical integrity of the minors or family members under their care",
+           grepl("I-43.", Indicators) ~ "I-43. The victim thinks that the aggressor is capable of attacking them in a violent way or even of killing them",
+        .default = as.character(Indicators) )
+)
   
 # reorder so CI next to RR
 lotable4 <-
@@ -281,13 +306,93 @@ lotable4 <-
                  "Present",
                  "Absent",
                  "N/S",
-                 "PerValid")]
+                 "PerValid",
+               "OriginTable")]
 ```
 
+```{r creating table 5}
+# extract table 4 on page 8
+lotable5 <- pdf_text[[9]] %>% 
+  # split table on line breaks
+  str_split(., "\n", simplify = TRUE) %>% 
+  trimws()
+
+# isolate rows with relevant data
+lotable5 <- lotable5[grep("I-1. The", lotable5):
+                       grep("The victim feels that the risk level is high", lotable5)] %>% 
+  # remove rows of over-wrapped indicator text, to be added manually later
+  # ie only keep rows with numeric results, as indicated by a decimal and number
+  keep( ~ str_detect(.x, "\\.\\d+")) %>% 
+  # create columns
+  str_split_fixed(., " {2,}", 7) %>% 
+  # convert to data frame
+  data.frame(.)
+
+# add column names for easy reading
+
+names(lotable5) <- c("Indicators",
+                       "RR",
+                       "X^2",
+                       "Present",
+                       "Absent",
+                       "N/S",
+                       "PerValid")
+
+# separate RR coefficient from 95% CI
+lotable5 %<>%
+  mutate(CI = str_extract(RR, "(?<=\\[)[0-9.]+-[0-9.]+"),
+         RR = str_extract(RR, "^[0-9.]+"),
+         # and add column identifying origin table
+         OriginTable = 5, 
+         # fix indicator names for readibility
+         # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
+         Indicators = case_when(
+           grepl("I-1. The aggressor has contacted", Indicators) ~ "I-1. The aggressor has contacted the victim through technological means",
+           grepl("I-2. The aggressor has contacted", Indicators) ~ "I-2. The aggressor has contacted the victim through third parties",
+           grepl("I-3.", Indicators) ~ "I-3. The aggressor has physically gotten closer to the victim",
+           grepl("I-4.", Indicators) ~ "I-4. The aggressor is an escaped convict or is in an unknown location",
+           grepl("I-5.", Indicators) ~ "I-5. The aggressor has distanced themselves from the victim",
+           grepl("I-7.", Indicators) ~ "I-7. The aggressor exteriorizes a respectful attitude toward the law",
+           grepl("I-10.", Indicators) ~ "I-10. The aggressor follows the requirements of the charges and of the family separation",
+           grepl("I-11.", Indicators) ~ "I-11. The victim has resumed living with the aggressor",
+           grepl("I-12.", Indicators) ~ "I-12. The victim doesn't report any episodes to file a complaint about, and/or turns down the offer of protection",
+           grepl("I-13.", Indicators) ~ "I-13. The victim engages in activities that threaten their own security",
+           grepl("I-14.", Indicators) ~ "I-14. The victim is in a situation of economical dependency",
+           grepl("I-15", Indicators) ~ "I-15. The victim has minors or family member under their care",
+           grepl("I-16.", Indicators) ~ "I-16. Judicial proceedings to carry out a separation/divorce unwanted by the aggressor",
+           grepl("I-17.", Indicators) ~ "I-17. The victim establishes a new sentimental relationship, which is not approved by the aggressor",
+           grepl("I-18.", Indicators) ~ "I-18. The aggressor establishes a new sentimental relationship",
+           grepl("I-19.", Indicators) ~ "I-19. The aggressor has a stable economic and labor situation",
+           grepl("I-20", Indicators) ~ "I-20. The aggressor has favorable family and social support",
+           grepl("I-21.", Indicators) ~ "I-21. Presence of a conflict about their responsibilities in the children’s care",
+           grepl("I-22.", Indicators) ~ "The victim feels that the risk level is nonexistent",
+        .default = as.character(Indicators) )
+)
+  
+# reorder so CI next to RR
+lotable5 <-
+  lotable5[, c("Indicators",
+                 "RR",
+                 "CI",
+                 "X^2",
+                 "Present",
+                 "Absent",
+                 "N/S",
+                 "PerValid",
+               "OriginTable")]
+```
+
+
+
+
+
+
+
+
 ```{r show tables}
-lotable1 %>% 
-  kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "X^2", "Present", "Absent", "N/S", "Percent Valid"), caption = "Reported episode indicators associated with recidivism after 6 months included in the VPR-2015 form") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
+# lotable1 %>% 
+#   kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "X^2", "Present", "Absent", "N/S", "Percent Valid"), caption = "Reported episode indicators associated with recidivism after 6 months included in the VPR-2015 form") %>% 
+#   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 2\. The authors use chi-square statistics to test for association

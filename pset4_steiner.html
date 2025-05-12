@@ -9,9 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="erika steiner" />
 
+<meta name="date" content="2025-05-12" />
 
-<title>pset_4_steiner</title>
+<title>pset4_steiner</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -348,12 +350,64 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">pset_4_steiner</h1>
+<h1 class="title toc-ignore">pset4_steiner</h1>
+<h4 class="author">erika steiner</h4>
+<h4 class="date">2025-05-12</h4>
 
 </div>
 
 
-
+<p>In Lopez-Osorio et al (2017), posted on Canvas, the authors undertake
+an exploratory study. They ask what sort of factors relating to
+incidents of reported domestic violence (DV), and the parties involved,
+can predict DV recidivism, where DV recidivism is defined as one or more
+repeat calls to the police within six months. Although they test 66
+candidate predictors (by my count), they take no account of multiple
+testing. Here you re-analyze their results, employing methods to control
+both FWER and FDR.</p>
+<p>1. Extract data from Tables 1 through 4 of the article, constructing
+a dataset or dataframe that can be analyzed with a statistical
+package.</p>
+<p>(Per Ed Discussion Board, extracting data from Tables 1 through
+5).</p>
+<p>2. The authors use chi-square statistics to test for association
+between their candidate predictors and DV recidivism. On the basis of
+the authors’ analysis, how many significant predictors are there at the
+5 percent level?</p>
+<p>3. Obtain p-values associated with the chi-square statistics and plot
+their distribution. Under the null hypothesis, one can show that
+p-values are uniformly distributed. Given that, would you say the
+predictors are basically all noise, or does the histogram suggest there
+is some predictive signal among them?</p>
+<p>4. Construct Bonferroni p-values. Controlling the FWER at 5 percent,
+which predictors are significant? Which predictors lose their
+significance when you account for multiple testing using the Bonferroni
+correction?</p>
+<p>5. Now test for significance using the Benjamini-Hochberg approach,
+controlling the FDR at 5 percent. Produce a useful visualization that
+illustrates how the procedure works. According to this criterion, how
+many of the features are significant? In expectation, how many of these
+are false discoveries?</p>
+<p>6. Compute the probability that each test represents a false
+discovery. This requires solving one equation in one unknown for each
+test.</p>
+<p>7. Produce a concise listing of the predictors and the various test
+results indicating which of them are significant according to the
+various testing procedures. Also show which are not significant
+according to any test. Do the most- or least-significant predictors
+follow any pattern? What about those in between, i.e., those which are
+significant according to some procedures but not others?</p>
+<p>8. Considering the objectives of the research study, which do you
+think is the more appropriate approach to multiple testing, FWER control
+or FDR control? Explain.</p>
+<p>9. It is a complete coincidence that the authors’ unadjusted testing
+procedure and the Benjamini-Hochberg procedure produce similar numbers
+of significant predictors. Can you explain why this is the case? Hint:
+think about the graph you produced in question 5 and the listing you
+produced in question 7.</p>
+<p>10. Does accounting for multiple testing lead you to draw different
+conclusions than those of Lopez-Osorio et al regarding the factors that
+predict DV recidivism? Explain.</p>
 
 
 
