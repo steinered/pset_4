@@ -545,11 +545,11 @@ The below table shows 25 indicators which have statistically significant Bonferr
 # m = number of hypotheses = 65
 # p-value = 0.05
 
-m_hyp <- 65
+m <- 65
 
 # add Bonferroni p-value
 df %<>% 
-  mutate(bonf = (pval * m_hyp))
+  mutate(bonf = (pval * m))
 
 # Controlling the FWER at 5 percent, which predictors are significant?
 df %>% 
@@ -607,13 +607,23 @@ r <- df %>%
   nrow() %>% 
   as.numeric()
 
-# rank the p-values
 df %>% 
-  mutate(prank = rank(pval))
+  # rank the p-values
+  mutate(prank = rank(pval)) %>%
+  # add in q * i / m
+  mutate(qim = (0.05 * prank)/ m) %>% 
+  ggplot(aes(x = prank, y = pval)) +
+  geom_point() +
+  geom_line(aes(x = prank, y = qim))
 
-
-
-
+df %>% 
+  # rank the p-values
+  mutate(prank = rank(pval)) %>%
+  # add in q * i / m
+  mutate(qim = (0.05 * prank)/ m) %>% 
+  # filter(pval <= qim) %>% 
+  select(Indicators, pval, prank, qim) %>% 
+  filter(prank == 38)
 
 ```
 
