@@ -637,9 +637,11 @@ This requires solving one equation in one unknown for each test.
 # https://www.r-bloggers.com/2023/07/the-benjamini-hochberg-procedure-fdr-and-p-value-adjusted-explained/
 # gives formula for adjust p-value in R
 
+df %<>% 
+  mutate(qadjp = (p.adjust(pval, method = "BH"))) 
+
 df %>% 
-  mutate(qprob = (p.adjust(pval, method = "BH"))) %>% 
-  select(Indicators, pval, prank, qim, qprob) %>% 
+  select(Indicators, pval, prank, qim, qadjp) %>% 
   arrange(prank) %>%
   kable(col.names = c("Indicators", "P-Value", "P-Value Rank (i)", "Threshold (q*i/m)", "Probability of False Discovery")) %>% 
   kable_paper("striped", full_width = F)
@@ -652,6 +654,42 @@ various testing procedures. Also show which are not significant
 according to any test. Do the most- or least-significant predictors
 follow any pattern? What about those in between, i.e., those which are
 significant according to some procedures but not others?
+
+```{r 7}
+df %>% 
+  # select relevant columns, 
+  select(
+    # names of variables
+    Indicators,
+    # chi-squared
+    ChiSq,
+    # original p-value
+    pval,
+    # bonferroni adjusted
+    bonf,
+    # BH adjustced
+    qadjp
+  ) %>% 
+  arrange(-ChiSq) %>% 
+  # mutate(
+  # pval = cell_spec(formatC(pval, format = "e", digits = 2),
+  #                  color = ifelse(pval > 0.05, "white", "black"),
+  #                 background = ifelse(pval > 0.05, "red", "white"),
+  #                 bold = ifelse(pval > 0.05, T, F))) %>% 
+  # mutate(
+  # bonf = cell_spec(formatC(bonf, format = "e", digits = 2),
+  #                  color = ifelse(bonf > 0.05, "white", "black"),
+  #                 background = ifelse(bonf > 0.05, "red", "white"),
+  #                 bold = ifelse(bonf > 0.05, T, F))) %>% 
+  # mutate(
+  # qadjp = cell_spec(formatC(qadjp, format = "e", digits = 2),
+  #                   color = ifelse(qadjp> 0.05, "white", "black"),
+  #                 background = ifelse(qadjp > 0.05, "red", "white"),
+  #                 bold = ifelse(qadjp > 0.05, T, F))) %>% 
+  kable(col.names = c("Indicators", "Chi-Squared Statistic", "Original P-value", "Bonferroni Adjusted P-value", "BH Adjusted P-value"), caption = "Indicators and Corresponding Significance") %>% 
+  kable_paper(full_width = F)
+```
+
 
 8\. Considering the objectives of the research study, which do you think
 is the more appropriate approach to multiple testing, FWER control or
