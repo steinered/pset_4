@@ -486,8 +486,8 @@ df %>%
     n_significant_tests = sum(pval < 0.05),
     percent_significant_tests = mean(pval < 0.05) * 100
   ) %>% 
-  kable(col.names = c("Total Hypotheses", "Number of Signficant Indicators", "Percentage of Significant Indicators"), caption = "Summary of P-Value Distribution") %>% 
-  kable_paper("striped")
+  kable(col.names = c("Total Hypotheses", "Number of Signficant Indicators", "Percentage of Significant Indicators"), caption = "Summary P-Value Distribution") %>% 
+  kable_paper("striped", full_width = F)
 ```
 The distribution of p-values does not follow a uniform distribution, which we'd expected under the null. Over 58% have a p-value < 0.05. Under the null hypothesis this would be extremely rare , suggesting that these indicators do have some predictive signal among them.
 
@@ -513,6 +513,7 @@ df %<>%
 df %>% 
   # filter bonferroni for under 0.05
   filter(bonf < 0.05) %>% 
+  arrange(bonf) %>% 
   kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "Present", "Absent", "N/S", "Percent Valid", "Original Table", "P-Value", "Bonferroni P-Value"), caption = "Bonferroni Significant Indicators") %>% 
   kable_paper("striped", full_width = F) %>% 
   footnote(
@@ -537,6 +538,7 @@ df %>%
   filter(pval < 0.05) %>% 
   # but insignificant adjusted bonferroni greater than 0.05
   filter(bonf > 0.05) %>% 
+  arrange(bonf) %>% 
   kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "Present", "Absent", "N/S", "Percent Valid", "Original Table", "P-Value", "Bonferroni P-Value"), caption = "Bonferroni Insignificant Indicators") %>% 
   kable_paper("striped", full_width = F) %>% 
   footnote(
@@ -576,7 +578,8 @@ r <- df %>%
 
 df %<>% 
   # rank the p-values
-  mutate(prank = rank(pval)) %>%
+  # recommended ties method https://www.r-bloggers.com/2023/07/the-benjamini-hochberg-procedure-fdr-and-p-value-adjusted-explained/
+  mutate(prank = rank(pval, ties.method = "last")) %>%
   # add in threshold of q * i / m
   mutate(qim = (0.05 * prank)/ m) 
 
@@ -615,6 +618,7 @@ df %>%
 df %>% 
   filter(pval < qim) %>% 
   select(Indicators, pval, prank, qim) %>% 
+  arrange(prank) %>% 
   kable(col.names = c("Indicators", "P-Value", "P-Value Rank (i)", "Threshold (q*i/m)"), caption = "Benjamini-Hochberg Significant Indicators") %>% 
   kable_paper("striped", full_width = F)
 
@@ -629,6 +633,18 @@ According to this criterion, 37 of these indicators are significant. We expect 5
 
 6\. Compute the probability that each test represents a false discovery.
 This requires solving one equation in one unknown for each test.
+```{r 6}
+# https://www.r-bloggers.com/2023/07/the-benjamini-hochberg-procedure-fdr-and-p-value-adjusted-explained/
+# gives formula for adjust p-value in R
+
+df %>% 
+  mutate(qprob = (p.adjust(pval, method = "BH"))) %>% 
+  select(Indicators, pval, prank, qim, qprob) %>% 
+  arrange(prank) %>%
+  kable(col.names = c("Indicators", "P-Value", "P-Value Rank (i)", "Threshold (q*i/m)", "Probability of False Discovery")) %>% 
+  kable_paper("striped", full_width = F)
+
+```
 
 7\. Produce a concise listing of the predictors and the various test
 results indicating which of them are significant according to the
