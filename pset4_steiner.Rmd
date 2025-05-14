@@ -18,6 +18,7 @@ testing. Here you re-analyze their results, employing methods to control
 both FWER and FDR.
 
 ```{r setup, include = FALSE}
+
 # load packages
 
 library("tidyverse")
@@ -26,13 +27,6 @@ library("knitr")
 library("kableExtra")
 library("pdftools")
 library("stringr")
-# library("fixest")
-# library("broom")
-# library("did")
-# library("plm")
-#
-# library("stargazer")
-# library("ivreg")
 
 # get rid of scientific notation
 options(scipen=999)
@@ -46,7 +40,7 @@ dataset or dataframe that can be analyzed with a statistical package.*
 
 (Per Ed Discussion Board, extracting data from Tables 1 through 5).
 
-```{r create table 1}
+```{r creating table 1}
 # instructions source: https://crimebythenumbers.com/scrape-table.html
 
 # make pdf text file
@@ -87,7 +81,7 @@ lotable1 %<>%
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 1,
-         # fix indicator names for readibility
+         # fix indicator names for readability
          # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
          Indicators = case_when(
            grepl("I-1. P", Indicators) ~ "I-1. Presence of any type of violence carried out by the aggressor",
@@ -138,7 +132,6 @@ lotable2 <- lotable2[grep("I-11. T", lotable2):
   data.frame(.)
 
 # add column names for easy reading
-
 names(lotable2) <- c("Indicators",
                        "RR",
                        "ChiSq",
@@ -153,7 +146,7 @@ lotable2 %<>%
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 2,
-         # fix indicator names for readibility
+         # fix indicator names for readability
          # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
          Indicators = case_when(
            grepl("I-11. T", Indicators) ~ "I-11. They have shown exaggerated jealousy or have suspected their partner of infidelity in the last 6 months",
@@ -164,8 +157,7 @@ lotable2 %<>%
            grepl("I-15", Indicators) ~ "I-15. In the last year they have disrespected an authority figure",
            grepl("I-16.", Indicators) ~ "I-16. In the last year they have committed an aggression against third parties and/or animals.",
            grepl("I-17.", Indicators) ~ "I-17. In the last year they have made threats and slights towards third parties.",
-           grepl("I-18.", Indicators) ~ "I-18. Presence of problems in their life in
-the last 6 months.",
+           grepl("I-18.", Indicators) ~ "I-18. Presence of problems in their life in the last 6 months.",
            grepl("I-20.", Indicators) ~ "I-20. Presence of past breakings of sentence conditions",
            grepl("I-21.", Indicators) ~ "I-21. Presence of physical/sexual aggression records",
            grepl("I-22.", Indicators) ~ "I-22. Presence of gender violence records against other partners",
@@ -186,6 +178,14 @@ lotable2 <-
                  "N/S",
                  "PerValid",
                "OriginTable")]
+
+# during the pdf text read, for some reason I-11 did not carry over significance stars, so we will add those manually
+lotable2 %<>%
+  mutate(CI =
+           case_when(
+             CI == "[1.28-1.85]" ~ "[1.28-1.85]***",
+             .default = as.character(CI)
+           ))
 ```
 
 ```{r creating table 3}
@@ -222,7 +222,7 @@ lotable3 %<>%
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 3,
-         # fix indicator names for readibility
+         # fix indicator names for readability
          # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
          Indicators = case_when(
            grepl("I-27.", Indicators) ~ "I-27. Presence of any type of disability",
@@ -285,7 +285,7 @@ lotable4 %<>%
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 4, 
-         # fix indicator names for readibility
+         # fix indicator names for readability
          # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
          Indicators = case_when(
            grepl("I-38.", Indicators) ~ "I-38. The victim has withdrawn complaints in the past",
@@ -344,7 +344,7 @@ lotable5 %<>%
          RR = str_extract(RR, "^[0-9.]+"),
          # and add column identifying origin table
          OriginTable = 5, 
-         # fix indicator names for readibility
+         # fix indicator names for readability
          # https://stackoverflow.com/questions/43696227/mutate-with-case-when-and-contains
          Indicators = case_when(
            grepl("I-1. The aggressor has contacted", Indicators) ~ "I-1. The aggressor has contacted the victim through technological means",
@@ -384,7 +384,6 @@ lotable5 <-
 
 ```{r merge tables 1-5}
 # tk if time later, pipe this
-
 # use rbind
 df <- rbind(lotable1, lotable2, lotable3, lotable4, lotable5) %>% 
   # Only include named parent indicators (per Ed discussion)
@@ -392,18 +391,12 @@ df <- rbind(lotable1, lotable2, lotable3, lotable4, lotable5) %>%
 
 # convert number columns to numeric type
 df$ChiSq <- as.numeric(df$ChiSq)
-
 df$RR <- as.numeric(df$RR) 
-
 df$Present <- as.numeric(gsub(",", "", df$Present))
-
 # include space bc of one weird Absent import
 df$Absent <- as.numeric(gsub(",| ", "", df$Absent))
-
 df$`N/S` <- as.numeric(gsub(",", "", df$'N/S'))
-
 df$PerValid <- as.numeric(df$PerValid)
-
 
 df %>% 
   select(-OriginTable) %>% 
@@ -417,8 +410,8 @@ df %>%
   footnote(
     general = "** p<0.01,
     *** p <0.001,
-    IC of ChiSq is 95%,
-    The N/S Cateogry (missing data) groups the cases where this option was marked and the lost cases together."
+    CI of ChiSq is 95%,
+    The N/S Category (missing data) groups the cases where this option was marked and the lost cases together."
   )
 
 
@@ -433,54 +426,11 @@ the authors’ analysis, how many significant predictors are there at the
 
 ```{r q2, include = FALSE}
 # for chi square, df = 1 and alpha = 0.05: critical value = 3.841
-
 # find number of indicators with critical value > 3.841
-# for all indicators
 df %>% 
   filter(ChiSq > 3.841) %>% 
   nrow()
 
-# results = 50
-
-# for all indicators tables 1-4
-df %>% 
-  filter(!(OriginTable == 5)) %>% 
-  filter(ChiSq > 3.841) %>% 
-  nrow()
-
-# results = 32
-
-# for major indicators only
-df %>% 
-  # only indicators with "I" in indicators name
-  filter(grepl("I-", Indicators)) %>% 
-  filter(ChiSq > 3.841) %>% 
-  nrow()
-
-# results = 38
-
-# for major indicators only
-df %>% 
-  filter(!(OriginTable == 5)) %>%
-  # only indicators with "I" in indicators name
-  filter(grepl("I-", Indicators)) %>% 
-  filter(ChiSq > 3.841) %>% 
-  nrow()
-
-# results = 21
-
-# For a 2x2 table (Chi-Squared test), there is only 1 degree of freedom.
-# The corresponding critical Chi-S value for p \< 0.05 is thus 3.841.
-# "Significant predictors" are thus those with Chi-Squared results greater
-# than 3.841.
-# 
-# If we look at all indicators, including sub-indicators (those without an
-# "I-" preceding their name), there are 50 significant predictors across
-# tables 1-5; 32 of these indicators are from one of the first 4 tables.
-# 
-# If we limit our investigation to only major indicators (those with "I-"
-# preceding their name), there are 38 significant predictors; 21 of these
-# significant predictors are from tables 1-4.
 ```
 
 For a 2x2 table (Chi-Squared test), there is only 1 degree of freedom.
@@ -526,30 +476,38 @@ df %>%
     caption = "Histogram binned at 0.05 level as relevant to significance. Overlay density plot shows distribution of p-values.") + 
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust = 0.5)) +
-  scale_x_continuous(breaks = seq(0,1,0.05))
-
+  scale_x_continuous(breaks = seq(0,1,0.05)) 
 
 ```
-
-The distribution of p-values is not normal; over half have a p-value \<
-0.05. There are some indicators which fall across the rest of the
-distribution, which may be indicative of some normal behavior; however,
-the majority of "significant" predictors are likely noise.
+```{r 3 summary table}
+df %>% 
+  summarise(
+    total_hypotheses = n(),
+    n_significant_tests = sum(pval < 0.05),
+    percent_significant_tests = mean(pval < 0.05) * 100
+  ) %>% 
+  kable(col.names = c("Total Hypotheses", "Number of Signficant Indicators", "Percentage of Significant Indicators"), caption = "Summary of P-Value Distribution") %>% 
+  kable_paper("striped")
+```
+The distribution of p-values does not follow a uniform distribution, which we'd expected under the null. Over 58% have a p-value < 0.05. Under the null hypothesis this would be extremely rare , suggesting that these indicators do have some predictive signal among them.
 
 *4. Construct Bonferroni p-values. Controlling the FWER at 5 percent,
 which predictors are significant?*
 
-The below table shows 25 indicators which have statistically significant Bonferroni-adjusted p-values.
 ```{r 4 part 1}
 # bonferroni = m * p-value
-# m = number of hypotheses = 65
 # p-value = 0.05
 
+# m = number of hypotheses = 65
 m <- 65
+
 
 # add Bonferroni p-value
 df %<>% 
-  mutate(bonf = (pval * m))
+  # column bonf
+  mutate(bonf = 
+           # pmin caps adjusted pval at 1
+           pmin((pval * m), 1))
 
 # Controlling the FWER at 5 percent, which predictors are significant?
 df %>% 
@@ -560,16 +518,16 @@ df %>%
   footnote(
     general = "** p<0.01,
     *** p <0.001,
-    IC of ChiSq is 95%,
-    The N/S Cateogry (missing data) groups the cases where this option was marked and the lost cases together."
+    CI of ChiSq is 95%,
+    The N/S Category (missing data) groups the cases where this option was marked and the lost cases together."
   )
 
 ```
 
+The above table shows 25 indicators which have statistically significant Bonferroni-adjusted p-values.
+
 *4. Cont. Which predictors lose their significance when you account for multiple testing using the Bonferroni
 correction?*
-
-The below table shows 13 indicators which do not have statistically significant Bonferroni-adjusted p-values, despite having significant un-adjusted p-values.
 
 ```{r r pat 2}
 # Which predictors lose their significance when you account for multiple testing using the Bonferroni correction?
@@ -584,16 +542,16 @@ df %>%
   footnote(
     general = "** p<0.01,
     *** p <0.001,
-    IC of ChiSq is 95%,
-    The N/S Cateogry (missing data) groups the cases where this option was marked and the lost cases together."
+    CI of ChiSq is 95%,
+    The N/S Category (missing data) groups the cases where this option was marked and the lost cases together."
   )
 ```
 
-5\. Now test for significance using the Benjamini-Hochberg approach,
+The above table shows 13 indicators which do not have statistically significant Bonferroni-adjusted p-values, despite having significant un-adjusted p-values.
+
+*5\. Now test for significance using the Benjamini-Hochberg approach,
 controlling the FDR at 5 percent. Produce a useful visualization that
-illustrates how the procedure works. According to this criterion, how
-many of the features are significant? In expectation, how many of these
-are false discoveries?
+illustrates how the procedure works.*
 
 ```{r 5}
 # benjamini-hochberg procedure
@@ -601,32 +559,73 @@ are false discoveries?
 # q = (v = instances where test is declared significant but H0 is true)/(r = total number of tests declared significant)
 # q = 0.05
 
+# q control for FDR at 5%
 q <- 0.05
+# r = number of tests declared significant
 r <- df %>% 
+  # filtered for significance
   filter(pval < 0.05) %>% 
+  # count number of tests
   nrow() %>% 
+  # format as number
   as.numeric()
 
-df %>% 
+
+# threshold = q*i/m
+# threshold = desired false discovery rate * rank of p-value (where p(i) is the i-th smallest p-value) / total number of hypothesis tests
+
+df %<>% 
   # rank the p-values
   mutate(prank = rank(pval)) %>%
-  # add in q * i / m
-  mutate(qim = (0.05 * prank)/ m) %>% 
+  # add in threshold of q * i / m
+  mutate(qim = (0.05 * prank)/ m) 
+
+# graph it
+df %>% 
+  mutate(color = (ifelse(pval < qim, 'red', 'blue'))) %>% 
   ggplot(aes(x = prank, y = pval)) +
-  geom_point() +
-  geom_line(aes(x = prank, y = qim))
+  geom_point(aes(color = color)) +
+  scale_color_manual(
+  values = c("red" = "firebrick", "blue" = "steelblue"),
+  name = "Significance",
+  labels = c("Not Significant", "Significant")
+) +
+  geom_line(aes(x = prank, y = qim)) +
+  # https://r-graph-gallery.com/275-add-text-labels-with-ggplot2.html
+  geom_label(
+    label="line: q * i / m", 
+    x=60,
+    y=0.09,
+    label.padding = unit(0.20, "lines"), # Rectangle size around label
+    label.size = 0.10,
+    color = "black",
+    fill="azure"
+  ) +
+   labs(
+    x = "i (p-value rank)",
+    y = "p-value",
+    title = "Benjamini-Hochberg Visualization",
+    caption = "Line") + 
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), plot.caption = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = seq(0,65,5)) +
+  scale_y_continuous(breaks = seq(0,1,0.05))
+  
 
 df %>% 
-  # rank the p-values
-  mutate(prank = rank(pval)) %>%
-  # add in q * i / m
-  mutate(qim = (0.05 * prank)/ m) %>% 
-  # filter(pval <= qim) %>% 
+  filter(pval < qim) %>% 
   select(Indicators, pval, prank, qim) %>% 
-  filter(prank == 38)
+  kable(col.names = c("Indicators", "P-Value", "P-Value Rank (i)", "Threshold (q*i/m)"), caption = "Benjamini-Hochberg Significant Indicators") %>% 
+  kable_paper("striped", full_width = F)
+
+# expected number of false rejections
+# q * r
+# 0.05 * 37 = 1.85
 
 ```
+*5. (Cont.) According to this criterion, how many of the features are significant? In expectation, how many of these are false discoveries?*
 
+According to this criterion, 37 of these indicators are significant. We expect 5% of these 37 indicators to be false discoveries; therefore, we assume 1.85 indicators are false discoveries.
 
 6\. Compute the probability that each test represents a false discovery.
 This requires solving one equation in one unknown for each test.
