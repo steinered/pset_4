@@ -648,14 +648,12 @@ df %>%
 
 ```
 
-7\. Produce a concise listing of the predictors and the various test
+*7\. Produce a concise listing of the predictors and the various test
 results indicating which of them are significant according to the
 various testing procedures. Also show which are not significant
-according to any test. Do the most- or least-significant predictors
-follow any pattern? What about those in between, i.e., those which are
-significant according to some procedures but not others?
+according to any test.*
 
-```{r 7}
+```{r 7, results = 'asis'}
 df %>% 
   # select relevant columns, 
   select(
@@ -671,35 +669,58 @@ df %>%
     qadjp
   ) %>% 
   arrange(-ChiSq) %>% 
-  # mutate(
-  # pval = cell_spec(formatC(pval, format = "e", digits = 2),
-  #                  color = ifelse(pval > 0.05, "white", "black"),
-  #                 background = ifelse(pval > 0.05, "red", "white"),
-  #                 bold = ifelse(pval > 0.05, T, F))) %>% 
-  # mutate(
-  # bonf = cell_spec(formatC(bonf, format = "e", digits = 2),
-  #                  color = ifelse(bonf > 0.05, "white", "black"),
-  #                 background = ifelse(bonf > 0.05, "red", "white"),
-  #                 bold = ifelse(bonf > 0.05, T, F))) %>% 
-  # mutate(
-  # qadjp = cell_spec(formatC(qadjp, format = "e", digits = 2),
-  #                   color = ifelse(qadjp> 0.05, "white", "black"),
-  #                 background = ifelse(qadjp > 0.05, "red", "white"),
-  #                 bold = ifelse(qadjp > 0.05, T, F))) %>% 
-  kable(col.names = c("Indicators", "Chi-Squared Statistic", "Original P-value", "Bonferroni Adjusted P-value", "BH Adjusted P-value"), caption = "Indicators and Corresponding Significance") %>% 
-  kable_paper(full_width = F)
+  rowwise() %>% 
+  mutate(
+    pval = cell_spec(
+      formatC(pval, format = "f", digits = 5),
+      color = ifelse(pval < 0.05, "white", "black"),
+      background = ifelse(pval < 0.05, "darkorchid4", "white"),
+      bold = ifelse(pval < 0.05, T, F)
+    )
+  ) %>% 
+  mutate(
+    bonf = cell_spec(
+      formatC(bonf, format = "f", digits = 5),
+      color = ifelse(bonf < 0.05, "white", "black"),
+      background = ifelse(bonf < 0.05, "orange4", "white"),
+      bold = ifelse(bonf < 0.05, T, F)
+    )
+  ) %>% 
+  mutate(
+    qadjp = cell_spec(
+      formatC(qadjp, format = "f", digits = 5),
+      color = ifelse(qadjp < 0.05, "white", "black"),
+      background = ifelse(qadjp < 0.05, "springgreen4", "white"),
+      bold = ifelse(qadjp < 0.05, T, F)
+    )
+  ) %>% 
+  kable(format = "html", escape = F, col.names = c("Indicators", "Chi-Squared Statistic", "Original P-value", "Bonferroni Adjusted P-value", "BH Adjusted P-value"), caption = "Indicators and Corresponding Significance") %>% 
+  kable_paper(full_width = F) %>% 
+  footnote(
+    general = "Original P-Value: Purple = Significant,
+    Bonferroni Adjusted P-Value: Orange = Significant,
+    Bonferroni Adjusted P-Value: Green = Significant,
+    alpha = 0.05"
+  )
+  
 ```
+*7. Cont. Do the most- or least-significant predictors
+follow any pattern? What about those in between, i.e., those which are
+significant according to some procedures but not others?*
 
+TK idk
 
 8\. Considering the objectives of the research study, which do you think
 is the more appropriate approach to multiple testing, FWER control or
 FDR control? Explain.
+
 
 9\. It is a complete coincidence that the authors’ unadjusted testing
 procedure and the Benjamini-Hochberg procedure produce similar numbers
 of significant predictors. Can you explain why this is the case? Hint:
 think about the graph you produced in question 5 and the listing you
 produced in question 7.
+
 
 10\. Does accounting for multiple testing lead you to draw different
 conclusions than those of Lopez-Osorio et al regarding the factors that
