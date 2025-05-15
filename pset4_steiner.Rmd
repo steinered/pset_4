@@ -7,25 +7,15 @@ editor_options:
   markdown: 
     wrap: 72
 ---
-
-In Lopez-Osorio et al (2017), posted on Canvas, the authors undertake an
-exploratory study. They ask what sort of factors relating to incidents
-of reported domestic violence (DV), and the parties involved, can
-predict DV recidivism, where DV recidivism is defined as one or more
-repeat calls to the police within six months. Although they test 66
-candidate predictors (by my count), they take no account of multiple
-testing. Here you re-analyze their results, employing methods to control
-both FWER and FDR.
-
 ```{r setup, include = FALSE}
 
 # load packages
 
+library("pdftools")
 library("tidyverse")
 library("magrittr")
 library("knitr")
 library("kableExtra")
-library("pdftools")
 library("stringr")
 
 # get rid of scientific notation
@@ -424,12 +414,25 @@ between their candidate predictors and DV recidivism. On the basis of
 the authors’ analysis, how many significant predictors are there at the
 5 percent level?*
 
-```{r q2, include = FALSE}
+```{r q2 chisq table}
 # for chi square, df = 1 and alpha = 0.05: critical value = 3.841
 # find number of indicators with critical value > 3.841
 df %>% 
-  filter(ChiSq > 3.841) %>% 
-  nrow()
+  mutate(
+    ChiSq = cell_spec(
+      formatC(ChiSq, format = "f", digits = 5),
+      color = ifelse(ChiSq > 3.841, "white", "black"),
+      background = ifelse(ChiSq > 3.841, "springgreen4", "white"),
+      bold = ifelse(ChiSq > 3.841, T, F)
+    )
+  ) %>% 
+  select(-c(OriginTable, Present, Absent, `N/S`, PerValid)) %>% 
+  kable(format = "html", escape = F, col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared"), caption = "Significant Chi-Squared Values") %>% 
+  kable_paper(full_width = F) %>% 
+  footnote(
+    general = "Chi-Squared Green: Significant (>3.841),
+    3.841 = Critical Value at 1 df, alpha 0.05"
+  )
 
 ```
 
@@ -441,11 +444,6 @@ than 3.841.
 If we look at all major/parent indicators, there are 38 Chi-Squared
 results greater than 3.841; therefore, there are 38 significant
 predictors across Tables 1-5.
-
-```{r}
-# TK
-# If there is time, make a data table where all of these indicators are highlighted
-```
 
 *3. Obtain p-values associated with the chi-square statistics and plot
 their distribution. Under the null hypothesis, one can show that
@@ -492,7 +490,7 @@ df %>%
 The distribution of p-values does not follow a uniform distribution, which we'd expected under the null. Over 58% have a p-value < 0.05. Under the null hypothesis this would be extremely rare , suggesting that these indicators do have some predictive signal among them.
 
 *4. Construct Bonferroni p-values. Controlling the FWER at 5 percent,
-which predictors are significant?*
+which predictors are significant? Which predictors lose their significance when you account for multiple testing using the Bonferroni correction?*
 
 ```{r 4 part 1}
 # bonferroni = m * p-value
@@ -509,47 +507,44 @@ df %<>%
            # pmin caps adjusted pval at 1
            pmin((pval * m), 1))
 
-# Controlling the FWER at 5 percent, which predictors are significant?
+# make a table
 df %>% 
-  # filter bonferroni for under 0.05
-  filter(bonf < 0.05) %>% 
-  arrange(bonf) %>% 
-  kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "Present", "Absent", "N/S", "Percent Valid", "Original Table", "P-Value", "Bonferroni P-Value"), caption = "Bonferroni Significant Indicators") %>% 
-  kable_paper("striped", full_width = F) %>% 
+  # mutate indicators first bc subsequent mutations cause error in reading values
+   mutate(
+    Indicators = cell_spec(formatC(Indicators, format = "s", digits = 5),
+      color = ifelse(bonf > 0.05 & pval < 0.05, "white", "black"),
+      background = ifelse(bonf > 0.05 & pval < 0.05, "springgreen4", "white"),
+      bold = ifelse(bonf > 0.05 & pval < 0.05, T, F)
+    )
+  ) %>%
+  mutate(
+    pval = cell_spec(
+      formatC(pval, format = "f", digits = 5),
+      color = ifelse(pval < 0.05, "white", "black"),
+      background = ifelse(pval < 0.05, "darkorchid4", "white"),
+      bold = ifelse(pval < 0.05, T, F)
+    )
+  ) %>% 
+  mutate(
+    bonf = cell_spec(
+      formatC(bonf, format = "f", digits = 5),
+      color = ifelse(bonf < 0.05, "white", "black"),
+      background = ifelse(bonf < 0.05, "orange4", "white"),
+      bold = ifelse(bonf < 0.05, T, F)
+    )
+  ) %>% 
+  select(-c(OriginTable, Present, Absent, `N/S`, PerValid) ) %>% 
+  kable(format = "html", escape = F, col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "P-Value", "Bonferroni Adjusted P-Value"), caption = "P-Value Significance after Bonferroni Adjustment") %>% 
+  kable_paper(full_width = F) %>% 
   footnote(
-    general = "** p<0.01,
-    *** p <0.001,
-    CI of ChiSq is 95%,
-    The N/S Category (missing data) groups the cases where this option was marked and the lost cases together."
+    general = "Green Indicators: Lost significance after Bonferroni correction,
+    Purple P-Values: Significant at 0.05 level,
+    Orange Bonferroni Adjust P-Value: Significant at 0.05 level"
   )
 
 ```
 
-The above table shows 25 indicators which have statistically significant Bonferroni-adjusted p-values.
-
-*4. Cont. Which predictors lose their significance when you account for multiple testing using the Bonferroni
-correction?*
-
-```{r r pat 2}
-# Which predictors lose their significance when you account for multiple testing using the Bonferroni correction?
-
-df %>% 
-  # select only those with significant unadjusted p-values
-  filter(pval < 0.05) %>% 
-  # but insignificant adjusted bonferroni greater than 0.05
-  filter(bonf > 0.05) %>% 
-  arrange(bonf) %>% 
-  kable(col.names = c("Indicators", "RR Coefficient", "95% CI", "ChiSquared", "Present", "Absent", "N/S", "Percent Valid", "Original Table", "P-Value", "Bonferroni P-Value"), caption = "Bonferroni Insignificant Indicators") %>% 
-  kable_paper("striped", full_width = F) %>% 
-  footnote(
-    general = "** p<0.01,
-    *** p <0.001,
-    CI of ChiSq is 95%,
-    The N/S Category (missing data) groups the cases where this option was marked and the lost cases together."
-  )
-```
-
-The above table shows 13 indicators which do not have statistically significant Bonferroni-adjusted p-values, despite having significant un-adjusted p-values.
+The above table shows 13 indicators, highlighted in green, which had significant p-values ("P-Value" column cells highlighted in purple, <0.05) but do not after the Bonferroni adjustment. There are 25 indicators which have statistically significant Bonferroni-adjusted p-values ("Bonferroni Adjusted P-Value" column cells highlighted in orange, <0.05).
 
 *5\. Now test for significance using the Benjamini-Hochberg approach,
 controlling the FDR at 5 percent. Produce a useful visualization that
@@ -596,7 +591,7 @@ df %>%
   geom_line(aes(x = prank, y = qim)) +
   # https://r-graph-gallery.com/275-add-text-labels-with-ggplot2.html
   geom_label(
-    label="line: q * i / m", 
+    label="Threshold Line: (q*i/m)", 
     x=60,
     y=0.09,
     label.padding = unit(0.20, "lines"), # Rectangle size around label
@@ -656,19 +651,23 @@ according to any test.*
 ```{r 7, results = 'asis'}
 df %>% 
   # select relevant columns, 
-  select(
-    # names of variables
-    Indicators,
-    # chi-squared
-    ChiSq,
-    # original p-value
-    pval,
-    # bonferroni adjusted
-    bonf,
-    # BH adjustced
-    qadjp
-  ) %>% 
-  arrange(-ChiSq) %>% 
+  # select(
+  #   # names of variables
+  #   Indicators,
+  #   # chi-squared
+  #   ChiSq,
+  #   # p rank
+  #   prank,
+  #   # original p-value
+  #   pval,
+  #   # bonferroni adjusted
+  #   bonf,
+  #   # BH adjustced
+  #   qadjp,
+  #   # original test
+  #   OriginTable
+  # ) %>% 
+  arrange(prank) %>% 
   rowwise() %>% 
   mutate(
     pval = cell_spec(
@@ -694,7 +693,9 @@ df %>%
       bold = ifelse(qadjp < 0.05, T, F)
     )
   ) %>% 
-  kable(format = "html", escape = F, col.names = c("Indicators", "Chi-Squared Statistic", "Original P-value", "Bonferroni Adjusted P-value", "BH Adjusted P-value"), caption = "Indicators and Corresponding Significance") %>% 
+  kable(format = "html", escape = F, 
+#         col.names = c("Indicators", "Chi-Squared Statistic", "P-Ranking", "Original P-value", "Bonferroni Adjusted P-value", "BH Adjusted P-value", "Original Table"), 
+        caption = "Indicators and Corresponding Significance") %>% 
   kable_paper(full_width = F) %>% 
   footnote(
     general = "Original P-Value: Purple = Significant,
@@ -704,22 +705,34 @@ df %>%
   )
   
 ```
+
+When ordering by original p-value, the first 25 tests are significant (<0.05) under all 3 procedures. Ranked tests 26-37 are significant according to the original p-value and the Benjamini-Hochberg approach. Ranked test 38 is only significant according to the original p-value. All ranked tests 39 and higher are not significant under any test at the 0.05 level.
+
 *7. Cont. Do the most- or least-significant predictors
 follow any pattern? What about those in between, i.e., those which are
 significant according to some procedures but not others?*
 
-TK idk
+The most-significant predictors, in particular the first 11, are all from table 5 (the VPER 2015 form). Upon first glance, these top 11 indicators appear to have very different strengths. For example, the Risk Ratio coefficients of I-5 and I-6 are less than 0.10; but I-3, I-13, and I-1 are all greater than 6.10. This is explained in the original Table 5 note, which states "Protection when values are inferior to 1 and risk when they are superior to 1" -- which follows as indicators I-5 and I-6 are "protective," while the others are "risks". All "protective" indicators are significant by at least one procedure.
+
+All of the least significant indicators have coefficients closer to 1, and a Chi-Squared value equal to or very close to 0. This confirms that there is little to no relationship between the indicator and outcome, thus appropriately confirming the null hypothesis of no-relation (p-value > 0.05, and in fact = 1). 
+
+Under the Bonferroni adjustment, every adjusted p-value at or above rank 36 is equal to 1. There are thus 2-3 indicators which other procedures would confirm are significant, but which Bonferroni suggests absolutely prove the null hypothesis. This makes sense as the Bonferonni adjustment is much more conservative, minimizing the risk of Type I error but ultimately increasing the risk of Type II error as a result.
 
 8\. Considering the objectives of the research study, which do you think
 is the more appropriate approach to multiple testing, FWER control or
 FDR control? Explain.
 
+The research study seeks to improve the risk assessment tools used by police to prevent future Intimate Partner Violence. While it is important to avoid unnecessary incarceration, the first priority of the police in this case is to protect people from future violence, implying it may be better to more liberally integrate possible indicators to their evaluations. The study should thus use the FDR control as it is less restrictive/conservative than the FWER Bonferroni adjustment. Additionally, the FDR control produced more significant indicators from Tables 1-4, which are from the VPR forms which are utilized at the scene rather than after the fact.
 
 9\. It is a complete coincidence that the authors’ unadjusted testing
 procedure and the Benjamini-Hochberg procedure produce similar numbers
 of significant predictors. Can you explain why this is the case? Hint:
 think about the graph you produced in question 5 and the listing you
 produced in question 7.
+
+
+
+
 
 
 10\. Does accounting for multiple testing lead you to draw different
